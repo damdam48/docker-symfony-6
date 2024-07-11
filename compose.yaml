@@ -1,0 +1,50 @@
+name: medi_care_plus
+
+networks:
+  networks_app:
+  networks_db:
+
+volumes:
+  mysql_data:
+
+services:
+  server:
+    container_name: server
+    image: nginx
+    working_dir: /intranet
+    volumes:
+      - ./app:/intranet/app
+      - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - 80:80
+    networks:
+      networks_app:
+    depends_on:
+      - app
+
+  app:
+    container_name: symfony
+    build: ./.docker/php
+    working_dir: /intranet/app
+    volumes:
+      - ./app:/intranet/app
+    networks:
+      networks_app:
+      networks_db:
+    depends_on:
+      - db
+
+  db:
+    container_name: database
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=paris
+      - MYSQL_ROOT_PASSWORD=paris
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    networks:
+      networks_db:
